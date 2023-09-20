@@ -1,0 +1,35 @@
+version: "3"
+services:
+  server:
+    image: node:18
+    volumes:
+      - ./:/src
+    ports:
+      - "3000:3000"
+    working_dir: /src
+    command: npm run dev --host 0.0.0.0
+  web:
+    image: httpd
+    ports:
+      - "8080:80"
+  init:
+    image: node:18
+    profiles: ["init"]
+    volumes:
+      - ./:/src
+    working_dir: /src
+    command: npm install
+  deploy:
+    image: node:18
+    profiles: ["deploy"]
+    environment:
+      - GIT_USER=$GIT_USER
+      - GIT_PASS=$GIT_PASS
+      - GIT_NAME=$GIT_NAME
+      - GIT_MAIL=$GIT_MAIL
+      - USE_SSH=$USE_SSH
+      - CURRENT_BRANCH=$CURRENT_BRANCH
+    volumes:
+      - ./:/src
+    working_dir: /src
+    command: bash -c "git config --global user.email $GIT_MAIL && git config --global user.name $GIT_NAME && yarn deploy"
